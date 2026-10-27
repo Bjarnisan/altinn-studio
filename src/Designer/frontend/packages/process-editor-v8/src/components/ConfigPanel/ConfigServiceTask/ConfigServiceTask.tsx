@@ -5,6 +5,7 @@ import { ConfigContentContainer } from '../ConfigContent/ConfigContentContainer'
 import classes from './ConfigServiceTask.module.css';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
+import { RejectGatewayAlert } from '../ConfigContent/RejectGatewayAlert';
 import { StudioDetails, StudioDisplayTile } from '@studio/components';
 import { EditActions } from '../ConfigContent/EditActions';
 import { EditPolicy } from '../ConfigContent/EditPolicy';
@@ -17,6 +18,7 @@ export const ConfigServiceTask = (): React.ReactElement => {
   return (
     <ConfigContentContainer>
       <div className={classes.configContent}>
+        <RejectGatewayAlert />
         <EditTaskId />
         <StudioDisplayTile
           label={t('process_editor.configuration_panel_name_label')}

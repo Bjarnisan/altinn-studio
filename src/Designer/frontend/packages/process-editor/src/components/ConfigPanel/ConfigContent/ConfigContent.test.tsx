@@ -3,6 +3,7 @@ import type { Mock } from 'vitest';
 import { ConfigContent } from './ConfigContent';
 import { render } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { Element } from 'bpmn-js/lib/model/Types';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
@@ -173,6 +174,17 @@ describe('ConfigContent', () => {
     expect(designDetails).toBeInTheDocument();
   });
 
+  it('warns when a task with reject has no following gateway', () => {
+    renderConfigContent(
+      {},
+      { bpmnDetails: { ...mockBpmnDetails, element: createTaskWithReject() } },
+    );
+
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel.reject.missing_gateway_alert')),
+    ).toBeInTheDocument();
+  });
+
   describe('Default signature validator', () => {
     const runDefaultValidatorLabel = textMock(
       'process_editor.configuration_panel_run_default_validator_label',
@@ -292,6 +304,16 @@ describe('ConfigContent', () => {
     });
   });
 });
+
+const createTaskWithReject = (): Element =>
+  ({
+    businessObject: {
+      extensionElements: {
+        values: [{ $type: 'altinn:TaskExtension', actions: { action: [{ action: 'reject' }] } }],
+      },
+    },
+    outgoing: [],
+  }) as unknown as Element;
 
 const renderConfigContent = (
   bpmnApiContextProps: Partial<BpmnApiContextProps> = {},

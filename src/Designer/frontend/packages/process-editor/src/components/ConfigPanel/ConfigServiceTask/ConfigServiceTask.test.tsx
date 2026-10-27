@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { Element } from 'bpmn-js/lib/model/Types';
 import { ConfigServiceTask } from './ConfigServiceTask';
 import { type BpmnContextProps } from '../../../contexts/BpmnContext';
 import { type BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
@@ -121,6 +122,16 @@ describe('ConfigServiceTask', () => {
     expect(queryProcessShapeWarning()).toBeInTheDocument();
   });
 
+  it('warns when a task with reject has no following gateway', () => {
+    renderConfigServiceTask({
+      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, element: createTaskWithReject() } },
+    });
+
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel.reject.missing_gateway_alert')),
+    ).toBeInTheDocument();
+  });
+
   it.each(['eFormidling', 'myServiceTask'])(
     'renders no process shape warning for %s',
     (taskType) => {
@@ -178,6 +189,16 @@ const queryProcessShapeWarning = (): HTMLElement | null =>
   screen.queryByText(
     textMock('process_editor.configuration_panel.fiks_arkiv.missing_gateway_alert'),
   );
+
+const createTaskWithReject = (): Element =>
+  ({
+    businessObject: {
+      extensionElements: {
+        values: [{ $type: 'altinn:TaskExtension', actions: { action: [{ action: 'reject' }] } }],
+      },
+    },
+    outgoing: [],
+  }) as unknown as Element;
 
 type RenderProps = {
   bpmnContextProps: Partial<BpmnContextProps>;

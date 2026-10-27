@@ -8,6 +8,7 @@ import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { ConfigSubformPdfServiceTask } from './ConfigSubformPdfServiceTask';
 import { FiksArkivProcessShapeAlert } from './FiksArkivProcessShapeAlert';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
+import { RejectGatewayAlert } from '../ConfigContent/RejectGatewayAlert';
 import { StudioDetails } from '@studio/components';
 import { EditTaskName } from '../ConfigContent/EditTaskName';
 import { EditActions } from '../ConfigContent/EditActions';
@@ -27,6 +28,7 @@ export const ConfigServiceTask = (): React.ReactElement => {
     <ConfigContentContainer>
       <div className={classes.configContent}>
         {isFiksArkivTask && <FiksArkivProcessShapeAlert />}
+        <RejectGatewayAlert />
         <EditTaskId />
         <EditTaskName />
         {isCustomTask && <EditServiceTaskType />}

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { Element } from 'bpmn-js/lib/model/Types';
 import { ConfigServiceTask } from './ConfigServiceTask';
 import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
@@ -141,7 +142,25 @@ describe('ConfigServiceTask', () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it('warns when a task with reject has no following gateway', () => {
+    renderConfigServiceTask({
+      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, element: createTaskWithReject() } },
+    });
+
+    expect(
+      screen.getByText(textMock('process_editor.configuration_panel.reject.missing_gateway_alert')),
+    ).toBeInTheDocument();
+  });
 });
+
+const createTaskWithReject = (): Element =>
+  ({
+    businessObject: {
+      extensionElements: { values: [{ actions: { action: [{ action: 'reject' }] } }] },
+    },
+    outgoing: [],
+  }) as unknown as Element;
 
 type RenderProps = {
   bpmnContextProps: Partial<BpmnContextProps>;

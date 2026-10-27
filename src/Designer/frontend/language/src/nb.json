@@ -1253,6 +1253,7 @@
   "process_editor.configuration_panel.fiks_arkiv.gateway_without_branches_alert_one": "Gatewayen {{gateways}} må ha minst to piler ut før appen kan starte. Bruk pilene til å skille mellom bekreftet arkivering og feil fra arkivet.",
   "process_editor.configuration_panel.fiks_arkiv.gateway_without_branches_alert_other": "Disse gatewayene må ha minst to piler ut hver før appen kan starte: {{gateways}}. Bruk pilene til å skille mellom bekreftet arkivering og feil fra arkivet.",
   "process_editor.configuration_panel.fiks_arkiv.missing_gateway_alert": "Legg til en gateway rett etter Fiks Arkiv-oppgaven, med minst to piler ut. Gatewayen lar deg skille mellom bekreftet arkivering og feil fra arkivet. Appen kan ikke starte uten denne forgreningen.",
+  "process_editor.configuration_panel.reject.missing_gateway_alert": "Legg til en gateway rett etter oppgaven, med én pil tilbake når handlingen er Avvise og én pil videre ellers. Uten gatewayen går skjemaet videre til neste steg når brukeren avviser oppgaven, som om den var fullført.",
   "process_editor.configuration_panel_actions_action_card_custom": "Lag egendefinert handling",
   "process_editor.configuration_panel_actions_action_card_custom_label": "Skriv inn navnet på handlingen du vil lage",
   "process_editor.configuration_panel_actions_action_card_title": "Handling {{actionIndex}}",

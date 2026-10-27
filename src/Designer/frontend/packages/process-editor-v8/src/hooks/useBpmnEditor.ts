@@ -100,7 +100,10 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
   return useEditorCallback();
 };
 
-function useModelerEventListener<Event>(eventName: string, callback: (event: Event) => void): void {
+export function useModelerEventListener<Event>(
+  eventName: string,
+  callback: (event: Event) => void,
+): void {
   const { modelerRef, isInitialized } = useBpmnContext();
 
   useEffect(() => {

@@ -14,6 +14,7 @@ import { EditActions } from './EditActions';
 import { EditPolicy } from './EditPolicy';
 import { EditDataTypesToSign } from './EditDataTypesToSign';
 import { EditUniqueFromSignaturesInDataTypes } from './EditUniqueFromSignaturesInDataTypes';
+import { RejectGatewayAlert } from './RejectGatewayAlert';
 import { StudioModeler } from '../../../utils/bpmnModeler/StudioModeler';
 import { RecommendedActionChangeName } from './EditLayoutSetNameRecommendedAction/RecommendedActionChangeName';
 import { ConfigContentContainer } from './ConfigContentContainer';
@@ -61,6 +62,7 @@ export const ConfigContent = (): React.ReactElement => {
     <ConfigContentContainer className={classes.sectionHeader}>
       <div className={classes.configContent}>
         <MainSettingsHeader />
+        <RejectGatewayAlert />
         <EditTaskId />
         {taskHasConnectedLayoutSet && (
           <EditDataTypes
