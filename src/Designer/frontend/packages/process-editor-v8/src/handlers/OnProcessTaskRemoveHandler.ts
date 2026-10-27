@@ -188,14 +188,10 @@ export class OnProcessTaskRemoveHandler {
   }
 
   private handleConfirmationTaskRemove(taskMetadata: OnProcessTaskEvent): void {
-    const confirmationRuleId = new ConfirmationPolicyBuilder(this.org, this.app).getPolicyRuleId(
-      taskMetadata.taskEvent.element.id,
-    );
-    if (!this.currentPolicy.rules.some((rule) => rule.ruleId === confirmationRuleId)) return;
-
-    this.mutateApplicationPolicy({
-      ...this.currentPolicy,
-      rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== confirmationRuleId),
-    });
+    const updatedPolicy = new ConfirmationPolicyBuilder(
+      this.org,
+      this.app,
+    ).getPolicyWithoutConfirmationRule(taskMetadata.taskEvent.element.id, this.currentPolicy);
+    if (updatedPolicy) this.mutateApplicationPolicy(updatedPolicy);
   }
 }

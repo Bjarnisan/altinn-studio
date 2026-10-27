@@ -61,15 +61,11 @@ export class OnProcessTaskAddHandler {
   }
 
   private addConfirmationRule(taskId: string): void {
-    const confirmationRule = new ConfirmationPolicyBuilder(this.org, this.app).getConfirmationRule(
-      taskId,
-      this.currentPolicy,
-    );
-    if (!confirmationRule) return;
-    this.mutateApplicationPolicy({
-      ...this.currentPolicy,
-      rules: [...this.currentPolicy.rules, confirmationRule],
-    });
+    const updatedPolicy = new ConfirmationPolicyBuilder(
+      this.org,
+      this.app,
+    ).getPolicyWithConfirmationRule(taskId, this.currentPolicy);
+    if (updatedPolicy) this.mutateApplicationPolicy(updatedPolicy);
   }
 
   private addDataType(dataTypeId: string | undefined, taskId: string, contentType?: string): void {

@@ -68,12 +68,11 @@ export class OnProcessTaskRemoveHandler {
   }
 
   private removeConfirmationRule(taskId: string): void {
-    const ruleId = new ConfirmationPolicyBuilder(this.org, this.app).getPolicyRuleId(taskId);
-    if (!this.currentPolicy.rules.some((rule) => rule.ruleId === ruleId)) return;
-    this.mutateApplicationPolicy({
-      ...this.currentPolicy,
-      rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== ruleId),
-    });
+    const updatedPolicy = new ConfirmationPolicyBuilder(
+      this.org,
+      this.app,
+    ).getPolicyWithoutConfirmationRule(taskId, this.currentPolicy);
+    if (updatedPolicy) this.mutateApplicationPolicy(updatedPolicy);
   }
 
   private removeSignatureReferences(tasks: Element[], signatureDataType: string): void {

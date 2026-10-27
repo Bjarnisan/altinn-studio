@@ -117,17 +117,11 @@ export class OnProcessTaskAddHandler {
    * @private
    */
   private handleConfirmationTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    const confirmationRule = new ConfirmationPolicyBuilder(this.org, this.app).getConfirmationRule(
-      taskMetadata.taskEvent.element.id,
-      this.currentPolicy,
-    );
-    if (!confirmationRule) return;
-
-    // Need to merge the confirmation rule with the current policy, since backend does not support partial updates.
-    this.mutateApplicationPolicy({
-      ...this.currentPolicy,
-      rules: [...this.currentPolicy.rules, confirmationRule],
-    });
+    const updatedPolicy = new ConfirmationPolicyBuilder(
+      this.org,
+      this.app,
+    ).getPolicyWithConfirmationRule(taskMetadata.taskEvent.element.id, this.currentPolicy);
+    if (updatedPolicy) this.mutateApplicationPolicy(updatedPolicy);
   }
 
   /**
