@@ -1,5 +1,5 @@
 import { ArrayUtils } from '@studio/pure-functions';
-import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
+import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 
 export type ProcessShapeElement = {
   id: string;
@@ -12,22 +12,23 @@ export type ProcessShapeFlow = {
   target?: ProcessShapeElement;
 };
 
-export type FiksArkivProcessShapeIssue =
+export type ProcessShapeIssue =
   /** The task has no outgoing flow, or a flow leads to an element other than an exclusive gateway. */
   | { kind: 'missingGateway' }
   /** All following elements are exclusive gateways, but some have fewer than two outgoing flows. */
   | { kind: 'gatewayWithoutBranches'; gatewayIds: string[] };
 
-/** One flow handles successful archiving; the other handles errors. */
+/** One flow for each outcome, such as archived or failed in Fiks Arkiv, or reject and everything else. */
 const requiredGatewayBranchCount = 2;
 
 /**
- * Match FiksArkivConfigValidationService.ValidateProcessShape. Each element after the task must be an
- * exclusive gateway with at least two outgoing flows. Report the first failed rule.
+ * Each element after the task must be an exclusive gateway with at least two outgoing flows. Fiks Arkiv tasks
+ * need this to match FiksArkivConfigValidationService.ValidateProcessShape, and tasks with reject need it to
+ * send reject back. Report the first failed rule.
  */
-export const getFiksArkivProcessShapeIssue = (
+export const getProcessShapeIssue = (
   task: ProcessShapeElement | undefined,
-): FiksArkivProcessShapeIssue | undefined => {
+): ProcessShapeIssue | undefined => {
   if (!task) return undefined;
 
   const successors = getSuccessors(task);

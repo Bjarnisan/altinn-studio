@@ -1,35 +1,49 @@
 import { describe, expect, it } from 'vitest';
-import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
-import type { ProcessShapeElement, ProcessShapeFlow } from './fiksArkivProcessShape';
-import { getFiksArkivProcessShapeIssue } from './fiksArkivProcessShape';
+import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
+import type { ProcessShapeElement, ProcessShapeFlow } from './processShape';
+import { getProcessShapeIssue } from './processShape';
 
-describe('getFiksArkivProcessShapeIssue', () => {
+describe('getProcessShapeIssue', () => {
   it('reports no issue when a gateway with two outgoing flows follows the task', () => {
     const task = createTask([createGateway('Gateway_1', 2)]);
 
-    expect(getFiksArkivProcessShapeIssue(task)).toBeUndefined();
+    expect(getProcessShapeIssue(task)).toBeUndefined();
+  });
+
+  it('reports no issue when no task is selected', () => {
+    expect(getProcessShapeIssue(undefined)).toBeUndefined();
   });
 
   it('reports a missing gateway when nothing follows the task', () => {
-    expect(getFiksArkivProcessShapeIssue(createTask([]))).toEqual({ kind: 'missingGateway' });
+    expect(getProcessShapeIssue(createTask([]))).toEqual({ kind: 'missingGateway' });
+  });
+
+  it('reports a missing gateway when the task has no outgoing list', () => {
+    expect(getProcessShapeIssue({ id: 'Task_1' })).toEqual({ kind: 'missingGateway' });
+  });
+
+  it('reports a missing gateway when the outgoing flow has no target', () => {
+    const task: ProcessShapeElement = { id: 'Task_1', outgoing: [createSequenceFlow()] };
+
+    expect(getProcessShapeIssue(task)).toEqual({ kind: 'missingGateway' });
   });
 
   it('reports a missing gateway when the successor is not a gateway', () => {
     const task = createTask([{ id: 'EndEvent_1', type: BpmnTypeEnum.EndEvent }]);
 
-    expect(getFiksArkivProcessShapeIssue(task)).toEqual({ kind: 'missingGateway' });
+    expect(getProcessShapeIssue(task)).toEqual({ kind: 'missingGateway' });
   });
 
   it('reports a missing gateway when only some of the successors are gateways', () => {
     const task = createTask([createGateway('Gateway_1', 2), { id: 'Task_2', type: 'bpmn:Task' }]);
 
-    expect(getFiksArkivProcessShapeIssue(task)).toEqual({ kind: 'missingGateway' });
+    expect(getProcessShapeIssue(task)).toEqual({ kind: 'missingGateway' });
   });
 
   it('reports the gateways with fewer than two outgoing flows', () => {
     const task = createTask([createGateway('Gateway_1', 1), createGateway('Gateway_2', 2)]);
 
-    expect(getFiksArkivProcessShapeIssue(task)).toEqual({
+    expect(getProcessShapeIssue(task)).toEqual({
       kind: 'gatewayWithoutBranches',
       gatewayIds: ['Gateway_1'],
     });
@@ -45,14 +59,14 @@ describe('getFiksArkivProcessShapeIssue', () => {
       const task = createTask([createGateway('Gateway_1', 2)]);
       task.outgoing.push(annotation);
 
-      expect(getFiksArkivProcessShapeIssue(task)).toBeUndefined();
+      expect(getProcessShapeIssue(task)).toBeUndefined();
     });
 
     it('does not count the annotation attached to the gateway as a branch', () => {
       const gateway = createGateway('Gateway_1', 1);
       gateway.outgoing.push(annotation);
 
-      expect(getFiksArkivProcessShapeIssue(createTask([gateway]))).toEqual({
+      expect(getProcessShapeIssue(createTask([gateway]))).toEqual({
         kind: 'gatewayWithoutBranches',
         gatewayIds: ['Gateway_1'],
       });
@@ -74,7 +88,7 @@ const createGateway = (id: string, outgoingFlowCount: number): TestElement => ({
 });
 
 const createTask = (successors: ProcessShapeElement[]): TestElement => ({
-  id: 'FiksArkivTask_1',
+  id: 'Task_1',
   type: BpmnTypeEnum.ServiceTask,
   outgoing: successors.map((successor) => createSequenceFlow(successor)),
 });

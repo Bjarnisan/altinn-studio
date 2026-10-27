@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useModelerEventListener } from './useBpmnEditor';
+import { useModelerEventListener } from './useModelerEventListener';
 
 /** Refresh panels when connected elements change, including after undo or deletion. */
 export function useBpmnDiagramVersion(): number {

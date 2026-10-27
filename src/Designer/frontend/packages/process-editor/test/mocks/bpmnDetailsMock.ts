@@ -112,6 +112,16 @@ export const mockBpmnDetails: BpmnDetails = {
   element: getMockBpmnElementForTask('data'),
 };
 
+/** A task with `reject` and no flow out, so nothing sends `reject` back. */
+export const mockBpmnElementWithReject: ModdleElement = {
+  businessObject: {
+    extensionElements: {
+      values: [{ $type: taskExtensionType, actions: { action: [{ action: 'reject' }] } }],
+    },
+  },
+  outgoing: [],
+};
+
 export const confirmationActions = {
   actions: {
     action: [

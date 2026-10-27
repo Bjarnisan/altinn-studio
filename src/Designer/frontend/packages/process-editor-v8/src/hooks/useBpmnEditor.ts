@@ -1,5 +1,6 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useBpmnContext } from '../contexts/BpmnContext';
+import { useModelerEventListener } from './useModelerEventListener';
 import { BpmnModelerInstance } from '../utils/bpmnModeler/BpmnModelerInstance';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
@@ -99,21 +100,6 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
 
   return useEditorCallback();
 };
-
-export function useModelerEventListener<Event>(
-  eventName: string,
-  callback: (event: Event) => void,
-): void {
-  const { modelerRef, isInitialized } = useBpmnContext();
-
-  useEffect(() => {
-    if (isInitialized) {
-      const modeler = modelerRef.current;
-      modeler.on(eventName, callback);
-      return () => modeler.off(eventName, callback);
-    }
-  }, [isInitialized, eventName, callback, modelerRef]);
-}
 
 function useEditorCallback(): (div: HTMLDivElement) => void {
   const { initialBpmnXml, modelerRef, setIsInitialized, appVersion } = useBpmnContext();

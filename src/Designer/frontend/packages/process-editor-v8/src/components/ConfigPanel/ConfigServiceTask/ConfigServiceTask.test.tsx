@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { Element } from 'bpmn-js/lib/model/Types';
 import { ConfigServiceTask } from './ConfigServiceTask';
 import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
@@ -10,7 +9,7 @@ import {
   mockBpmnContextValue,
   mockBpmnApiContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
-import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
+import { mockBpmnDetails, mockBpmnElementWithReject } from '../../../../test/mocks/bpmnDetailsMock';
 import type { BpmnDetails } from '../../../types/BpmnDetails';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -145,7 +144,7 @@ describe('ConfigServiceTask', () => {
 
   it('warns when a task with reject has no following gateway', () => {
     renderConfigServiceTask({
-      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, element: createTaskWithReject() } },
+      bpmnContextProps: { bpmnDetails: { ...mockBpmnDetails, element: mockBpmnElementWithReject } },
     });
 
     expect(
@@ -153,14 +152,6 @@ describe('ConfigServiceTask', () => {
     ).toBeInTheDocument();
   });
 });
-
-const createTaskWithReject = (): Element =>
-  ({
-    businessObject: {
-      extensionElements: { values: [{ actions: { action: [{ action: 'reject' }] } }] },
-    },
-    outgoing: [],
-  }) as unknown as Element;
 
 type RenderProps = {
   bpmnContextProps: Partial<BpmnContextProps>;

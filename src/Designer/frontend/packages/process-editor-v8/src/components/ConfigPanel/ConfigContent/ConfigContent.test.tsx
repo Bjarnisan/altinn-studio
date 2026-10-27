@@ -3,7 +3,6 @@ import type { Mock } from 'vitest';
 import { ConfigContent } from './ConfigContent';
 import { render } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { Element } from 'bpmn-js/lib/model/Types';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
@@ -11,7 +10,11 @@ import { BpmnApiContext } from '../../../contexts/BpmnApiContext';
 import type { BpmnApiContextProps } from '../../../contexts/BpmnApiContext';
 import { type BpmnTaskType } from '../../../types/BpmnTaskType';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
-import { getMockBpmnElementForTask, mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
+import {
+  getMockBpmnElementForTask,
+  mockBpmnDetails,
+  mockBpmnElementWithReject,
+} from '../../../../test/mocks/bpmnDetailsMock';
 import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
@@ -176,7 +179,7 @@ describe('ConfigContent', () => {
   it('warns when a task with reject has no following gateway', () => {
     renderConfigContent(
       {},
-      { bpmnDetails: { ...mockBpmnDetails, element: createTaskWithReject() } },
+      { bpmnDetails: { ...mockBpmnDetails, element: mockBpmnElementWithReject } },
     );
 
     expect(
@@ -252,14 +255,6 @@ describe('ConfigContent', () => {
     });
   });
 });
-
-const createTaskWithReject = (): Element =>
-  ({
-    businessObject: {
-      extensionElements: { values: [{ actions: { action: [{ action: 'reject' }] } }] },
-    },
-    outgoing: [],
-  }) as unknown as Element;
 
 const renderConfigContent = (
   bpmnApiContextProps: Partial<BpmnApiContextProps> = {},

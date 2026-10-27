@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { StudioAlert, StudioParagraph } from '@studio/components';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnDiagramVersion } from '../../../../hooks/useBpmnDiagramVersion';
-import { getFiksArkivProcessShapeIssue } from './fiksArkivProcessShape';
+import { getProcessShapeIssue } from '../../../../utils/processShape';
 
 export const FiksArkivProcessShapeAlert = (): ReactElement | null => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   useBpmnDiagramVersion();
-  const issue = getFiksArkivProcessShapeIssue(bpmnDetails.element);
+  const issue = getProcessShapeIssue(bpmnDetails.element);
 
   if (!issue) return null;
 

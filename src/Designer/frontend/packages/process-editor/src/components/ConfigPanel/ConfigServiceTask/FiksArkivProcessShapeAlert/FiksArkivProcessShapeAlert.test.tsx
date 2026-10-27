@@ -4,7 +4,7 @@ import type { RenderResult } from '@testing-library/react';
 import type { Element } from 'bpmn-js/lib/model/Types';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FiksArkivProcessShapeAlert } from './FiksArkivProcessShapeAlert';
-import type { ProcessShapeElement, ProcessShapeFlow } from './fiksArkivProcessShape';
+import type { ProcessShapeElement, ProcessShapeFlow } from '../../../../utils/processShape';
 import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 import { modelerOnMock } from '../../../../../test/mocks/bpmnModelerMock';

@@ -4,7 +4,8 @@ import type { RenderResult } from '@testing-library/react';
 import type { Element } from 'bpmn-js/lib/model/Types';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RejectGatewayAlert } from './RejectGatewayAlert';
-import type { RejectGatewayElement, RejectGatewayFlow } from './rejectGateway';
+import type { RejectGatewayTask } from './rejectGateway';
+import type { ProcessShapeElement, ProcessShapeFlow } from '../../../../utils/processShape';
 import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 import { modelerOnMock } from '../../../../../test/mocks/bpmnModelerMock';
@@ -17,7 +18,7 @@ describe('RejectGatewayAlert', () => {
     expect(screen.getByText(missingGatewayText)).toBeInTheDocument();
   });
 
-  it('shows no warning when a gateway follows the task', () => {
+  it('shows no warning when a gateway with two outgoing flows follows the task', () => {
     renderRejectGatewayAlert(createSigningTask([createSequenceFlow(createGateway())]));
 
     expect(screen.queryByText(missingGatewayText)).not.toBeInTheDocument();
@@ -43,16 +44,21 @@ const notifyDiagramChanged = (): void =>
     .filter(([eventName]) => eventName === 'commandStack.changed')
     .forEach(([, listener]) => listener());
 
-type TestElement = RejectGatewayElement & { outgoing: RejectGatewayFlow[] };
+type TestTask = RejectGatewayTask & { outgoing: ProcessShapeFlow[] };
 
-const createSequenceFlow = (target: RejectGatewayElement): RejectGatewayFlow => ({
+const createSequenceFlow = (target?: ProcessShapeElement): ProcessShapeFlow => ({
   type: BpmnTypeEnum.SequenceFlow,
   target,
 });
 
-const createGateway = (): RejectGatewayElement => ({ type: BpmnTypeEnum.ExclusiveGateway });
+const createGateway = (): ProcessShapeElement => ({
+  id: 'Gateway_1',
+  type: BpmnTypeEnum.ExclusiveGateway,
+  outgoing: [createSequenceFlow(), createSequenceFlow()],
+});
 
-const createSigningTask = (outgoing: RejectGatewayFlow[]): TestElement => ({
+const createSigningTask = (outgoing: ProcessShapeFlow[]): TestTask => ({
+  id: 'Task_1',
   type: BpmnTypeEnum.Task,
   businessObject: {
     extensionElements: {
@@ -67,7 +73,7 @@ const createSigningTask = (outgoing: RejectGatewayFlow[]): TestElement => ({
   outgoing,
 });
 
-const renderRejectGatewayAlert = (task: TestElement): RenderResult =>
+const renderRejectGatewayAlert = (task: TestTask): RenderResult =>
   renderWithProviders(<RejectGatewayAlert />, {
     bpmnContextProps: {
       bpmnDetails: {

@@ -1,4 +1,6 @@
-import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
+import { PredefinedGatewayAction } from '@studio/components';
+import { getProcessShapeIssue } from '../../../../utils/processShape';
+import type { ProcessShapeElement } from '../../../../utils/processShape';
 import { TaskUtils } from '../../../../utils/taskUtils';
 
 type TaskExtension = {
@@ -6,33 +8,19 @@ type TaskExtension = {
   actions?: { action?: { action?: string }[] };
 };
 
-export type RejectGatewayElement = {
-  type?: string;
+export type RejectGatewayTask = ProcessShapeElement & {
   businessObject?: { extensionElements?: { values?: TaskExtension[] } };
-  outgoing?: RejectGatewayFlow[];
-};
-
-export type RejectGatewayFlow = {
-  type?: string;
-  target?: RejectGatewayElement;
 };
 
 /**
  * A `reject` abandons the task without validating it, and the process follows the flow out of the task. Only an
- * exclusive gateway right after the task can send `reject` back, so without one the process moves on as if the
- * task were completed.
+ * exclusive gateway right after the task, with one flow back and one flow on, can send `reject` back. Without it
+ * the process moves on as if the task were completed.
  */
-export const isRejectGatewayMissing = (task: RejectGatewayElement | undefined): boolean =>
-  task !== undefined && hasRejectAction(task) && !isFollowedByExclusiveGateway(task);
+export const isRejectGatewayMissing = (task: RejectGatewayTask | undefined): boolean =>
+  hasRejectAction(task) && getProcessShapeIssue(task) !== undefined;
 
-const hasRejectAction = (task: RejectGatewayElement): boolean =>
-  TaskUtils.getTaskExtensionFromBusinessObject(task.businessObject)?.actions?.action?.some(
-    (actionElement) => actionElement.action === 'reject',
+const hasRejectAction = (task: RejectGatewayTask | undefined): boolean =>
+  TaskUtils.getTaskExtensionFromBusinessObject(task?.businessObject)?.actions?.action?.some(
+    (actionElement) => actionElement.action === PredefinedGatewayAction.Reject,
   ) ?? false;
-
-const isFollowedByExclusiveGateway = (task: RejectGatewayElement): boolean => {
-  const flows = (task.outgoing ?? []).filter((flow) => flow.type === BpmnTypeEnum.SequenceFlow);
-  return (
-    flows.length > 0 && flows.every((flow) => flow.target?.type === BpmnTypeEnum.ExclusiveGateway)
-  );
-};

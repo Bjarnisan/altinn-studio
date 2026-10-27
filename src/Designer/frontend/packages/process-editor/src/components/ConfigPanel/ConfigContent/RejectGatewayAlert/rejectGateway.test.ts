@@ -1,37 +1,49 @@
 import { describe, expect, it } from 'vitest';
 import { isRejectGatewayMissing } from './rejectGateway';
-import type { RejectGatewayElement, RejectGatewayFlow } from './rejectGateway';
+import type { RejectGatewayTask } from './rejectGateway';
+import type { ProcessShapeElement, ProcessShapeFlow } from '../../../../utils/processShape';
 import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
 
 describe('isRejectGatewayMissing', () => {
   it.each`
-    description                                             | task                                                                                       | expected
-    ${'no task is selected'}                                | ${undefined}                                                                               | ${false}
-    ${'the task has no actions'}                            | ${createTask(undefined, [createSequenceFlow(createTask())])}                               | ${false}
-    ${'the task has no reject'}                             | ${createTask(['sign'], [createSequenceFlow(createTask())])}                                | ${false}
-    ${'reject is followed by a gateway'}                    | ${createTask(['reject'], [createSequenceFlow(gateway)])}                                   | ${false}
-    ${'reject has no flow out'}                             | ${createTask(['reject'], [])}                                                              | ${true}
-    ${'reject has no list of flows out'}                    | ${createTask(['reject'])}                                                                  | ${true}
-    ${'reject is followed by a task'}                       | ${createTask(['sign', 'reject'], [createSequenceFlow(createTask())])}                      | ${true}
-    ${'reject is followed by a gateway and a task'}         | ${createTask(['reject'], [createSequenceFlow(gateway), createSequenceFlow(createTask())])} | ${true}
-    ${'reject is connected to a gateway by an association'} | ${createTask(['reject'], [{ type: 'bpmn:Association', target: gateway }])}                 | ${true}
+    description                                             | task                                                                | expected
+    ${'no task is selected'}                                | ${undefined}                                                        | ${false}
+    ${'the task has no actions'}                            | ${createTask(undefined, [])}                                        | ${false}
+    ${'the task has no reject'}                             | ${createTask(['sign'], [])}                                         | ${false}
+    ${'reject has no flow out'}                             | ${createTask(['reject'], [])}                                       | ${true}
+    ${'reject is followed by a task'}                       | ${createTask(['sign', 'reject'], [nextTask])}                       | ${true}
+    ${'reject is followed by a gateway with one flow out'}  | ${createTask(['reject'], [createGateway(1)])}                       | ${true}
+    ${'reject is followed by a gateway with two flows out'} | ${createTask(['reject'], [createGateway(2)])}                       | ${false}
+    ${'the task extension is not the first extension'}      | ${createTask(['reject'], [], [{ $type: 'bpmn:ExtensionElement' }])} | ${true}
   `('returns $expected when $description', ({ task, expected }) => {
     expect(isRejectGatewayMissing(task)).toBe(expected);
   });
 });
 
-const gateway: RejectGatewayElement = { type: BpmnTypeEnum.ExclusiveGateway, outgoing: [] };
+const nextTask: ProcessShapeElement = { id: 'Task_2', type: BpmnTypeEnum.Task };
 
-const createSequenceFlow = (target: RejectGatewayElement): RejectGatewayFlow => ({
+const createSequenceFlow = (target?: ProcessShapeElement): ProcessShapeFlow => ({
   type: BpmnTypeEnum.SequenceFlow,
   target,
 });
 
-const createTask = (actions?: string[], outgoing?: RejectGatewayFlow[]): RejectGatewayElement => ({
+const createGateway = (outgoingFlowCount: number): ProcessShapeElement => ({
+  id: 'Gateway_1',
+  type: BpmnTypeEnum.ExclusiveGateway,
+  outgoing: Array.from({ length: outgoingFlowCount }, () => createSequenceFlow()),
+});
+
+const createTask = (
+  actions: string[] | undefined,
+  successors: ProcessShapeElement[],
+  extensionsBefore: { $type: string }[] = [],
+): RejectGatewayTask => ({
+  id: 'Task_1',
   type: BpmnTypeEnum.Task,
   businessObject: {
     extensionElements: {
       values: [
+        ...extensionsBefore,
         {
           $type: 'altinn:TaskExtension',
           actions: actions && { action: actions.map((action) => ({ action })) },
@@ -39,5 +51,5 @@ const createTask = (actions?: string[], outgoing?: RejectGatewayFlow[]): RejectG
       ],
     },
   },
-  outgoing,
+  outgoing: successors.map((successor) => createSequenceFlow(successor)),
 });
