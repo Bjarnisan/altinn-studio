@@ -1,6 +1,6 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '../types/OnProcessTask';
-import { PaymentPolicyBuilder } from 'app-development/utils/policy';
+import { ConfirmationPolicyBuilder, PaymentPolicyBuilder } from 'app-development/utils/policy';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getLayoutSetIdFromTaskId } from './bpmnHandlerUtils';
 import { StudioModeler } from '../utils/bpmnModeler/StudioModeler';
@@ -21,6 +21,10 @@ export class OnProcessTaskRemoveHandler {
   ) {}
 
   public handleOnProcessTaskRemove({ taskEvent, taskType }: OnProcessTaskEvent): void {
+    if (taskType === 'confirmation') {
+      this.removeConfirmationRule(taskEvent.element.id);
+      return;
+    }
     if (!['data', 'payment', 'signing', 'pdf', 'subformPdf'].includes(taskType)) return;
 
     const { id, businessObject } = taskEvent.element;
@@ -61,6 +65,15 @@ export class OnProcessTaskRemoveHandler {
         rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== ruleId),
       });
     }
+  }
+
+  private removeConfirmationRule(taskId: string): void {
+    const ruleId = new ConfirmationPolicyBuilder(this.org, this.app).getPolicyRuleId(taskId);
+    if (!this.currentPolicy.rules.some((rule) => rule.ruleId === ruleId)) return;
+    this.mutateApplicationPolicy({
+      ...this.currentPolicy,
+      rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== ruleId),
+    });
   }
 
   private removeSignatureReferences(tasks: Element[], signatureDataType: string): void {

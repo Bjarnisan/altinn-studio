@@ -1,6 +1,6 @@
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor-v8/types/OnProcessTask';
-import { PaymentPolicyBuilder } from 'app-development/utils/policy';
+import { ConfirmationPolicyBuilder, PaymentPolicyBuilder } from 'app-development/utils/policy';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { getLayoutSetIdFromTaskId } from './bpmnHandlerUtils';
 import { StudioModeler } from '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler';
@@ -33,6 +33,10 @@ export class OnProcessTaskRemoveHandler {
 
     if (taskMetadata.taskType === 'pdf') {
       this.handlePdfServiceTaskRemove(taskMetadata);
+    }
+
+    if (taskMetadata.taskType === 'confirmation') {
+      this.handleConfirmationTaskRemove(taskMetadata);
     }
   }
 
@@ -181,5 +185,17 @@ export class OnProcessTaskRemoveHandler {
         layoutSetIdToUpdate: layoutSetId,
       });
     }
+  }
+
+  private handleConfirmationTaskRemove(taskMetadata: OnProcessTaskEvent): void {
+    const confirmationRuleId = new ConfirmationPolicyBuilder(this.org, this.app).getPolicyRuleId(
+      taskMetadata.taskEvent.element.id,
+    );
+    if (!this.currentPolicy.rules.some((rule) => rule.ruleId === confirmationRuleId)) return;
+
+    this.mutateApplicationPolicy({
+      ...this.currentPolicy,
+      rules: this.currentPolicy.rules.filter((rule) => rule.ruleId !== confirmationRuleId),
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { PaymentPolicyBuilder } from 'app-development/utils/policy';
+import { ConfirmationPolicyBuilder, PaymentPolicyBuilder } from 'app-development/utils/policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor-v8/types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
 import type {
@@ -42,6 +42,10 @@ export class OnProcessTaskAddHandler {
 
     if (taskMetadata.taskType === 'signing') {
       this.handleSigningTaskAdd(taskMetadata);
+    }
+
+    if (taskMetadata.taskType === 'confirmation') {
+      this.handleConfirmationTaskAdd(taskMetadata);
     }
   }
 
@@ -105,6 +109,25 @@ export class OnProcessTaskAddHandler {
     if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element as Element)) {
       this.addSigneeStateToApplicationMetadata(taskMetadata);
     }
+  }
+
+  /**
+   * Adds a policy rule that lets the users who can write in the app confirm in the added confirmation task
+   * @param taskMetadata
+   * @private
+   */
+  private handleConfirmationTaskAdd(taskMetadata: OnProcessTaskEvent): void {
+    const confirmationRule = new ConfirmationPolicyBuilder(this.org, this.app).getConfirmationRule(
+      taskMetadata.taskEvent.element.id,
+      this.currentPolicy,
+    );
+    if (!confirmationRule) return;
+
+    // Need to merge the confirmation rule with the current policy, since backend does not support partial updates.
+    this.mutateApplicationPolicy({
+      ...this.currentPolicy,
+      rules: [...this.currentPolicy.rules, confirmationRule],
+    });
   }
 
   /**

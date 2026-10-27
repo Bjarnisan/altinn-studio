@@ -1,4 +1,4 @@
-import { PaymentPolicyBuilder } from 'app-development/utils/policy';
+import { ConfirmationPolicyBuilder, PaymentPolicyBuilder } from 'app-development/utils/policy';
 import type { OnProcessTaskEvent } from '../types/OnProcessTask';
 import type { Policy } from 'app-shared/types/Policy';
 import type { AddLayoutSetMutation } from 'app-development/hooks/mutations/useAddLayoutSetMutation';
@@ -25,6 +25,10 @@ export class OnProcessTaskAddHandler {
   ) {}
 
   public handleOnProcessTaskAdd({ taskEvent, taskType }: OnProcessTaskEvent): void {
+    if (taskType === 'confirmation') {
+      this.addConfirmationRule(taskEvent.element.id);
+      return;
+    }
     if (taskType !== 'data' && taskType !== 'payment' && taskType !== 'signing') return;
 
     const { id, businessObject } = taskEvent.element;
@@ -54,6 +58,18 @@ export class OnProcessTaskAddHandler {
       this.addDataType(signatureConfig?.signingPdfDataType, id, 'application/pdf');
       this.addDataType(signatureConfig?.signeeStatesDataTypeId, id);
     }
+  }
+
+  private addConfirmationRule(taskId: string): void {
+    const confirmationRule = new ConfirmationPolicyBuilder(this.org, this.app).getConfirmationRule(
+      taskId,
+      this.currentPolicy,
+    );
+    if (!confirmationRule) return;
+    this.mutateApplicationPolicy({
+      ...this.currentPolicy,
+      rules: [...this.currentPolicy.rules, confirmationRule],
+    });
   }
 
   private addDataType(dataTypeId: string | undefined, taskId: string, contentType?: string): void {

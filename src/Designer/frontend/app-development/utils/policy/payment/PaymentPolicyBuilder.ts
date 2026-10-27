@@ -1,4 +1,5 @@
 import { type Policy, type Action, type PolicyRule } from '../types';
+import { buildTaskResource, buildTaskRuleId } from '../policyRuleUtils';
 
 export class PaymentPolicyBuilder {
   constructor(
@@ -39,14 +40,10 @@ export class PaymentPolicyBuilder {
   }
 
   private buildRuleId(taskId: string): string {
-    return `urn:altinn:resource:app_${this.org}_${this.app}:policyid:1:ruleid:${taskId}`;
+    return buildTaskRuleId(this.org, this.app, taskId);
   }
 
   private buildResources(taskId: string): string[] {
-    return [
-      `urn:altinn:org:${this.org}`,
-      `urn:altinn:app:${this.app}`,
-      `urn:altinn:task:${taskId}`,
-    ];
+    return buildTaskResource(this.org, this.app, taskId);
   }
 }

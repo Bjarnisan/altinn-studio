@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Policy } from 'app-shared/types/Policy';
+import type { Policy, PolicyRule } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor-v8/types/OnProcessTask';
 import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
 import type { TaskEvent } from '@altinn/process-editor-v8/types/TaskEvent';
@@ -28,15 +28,23 @@ const currentPolicyMock: Policy = {
   requiredAuthenticationLevelEndUser: '3',
   rules: [],
 };
+
+const endUserRuleMock: PolicyRule = {
+  ruleId: 'urn:altinn:resource:app_testOrg_testApp:policyid:1:ruleid:1',
+  description: 'Rule for end users',
+  subject: ['urn:altinn:rolecode:priv'],
+  actions: ['read', 'write', 'instantiate'],
+  resources: [['urn:altinn:org:[ORG]', 'urn:altinn:app:[APP]']],
+};
 const addLayoutSetMock = vi.fn();
 const mutateApplicationPolicyMock = vi.fn();
 const addDataTypeToAppMetadataMock = vi.fn();
 
-const createOnProcessTaskHandler = () =>
+const createOnProcessTaskHandler = (currentPolicy: Policy = currentPolicyMock) =>
   new OnProcessTaskAddHandler(
     org,
     app,
-    currentPolicyMock,
+    currentPolicy,
     addLayoutSetMock,
     mutateApplicationPolicyMock,
     addDataTypeToAppMetadataMock,
@@ -167,7 +175,48 @@ describe('OnProcessTaskAddHandler', () => {
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 
-  it.each(['confirmation', 'feedback'])(
+  it('should add a confirm rule for the users who can write in the app when confirmation task is added', () => {
+    const currentPolicy: Policy = { ...currentPolicyMock, rules: [endUserRuleMock] };
+    const onProcessTaskAddHandler = createOnProcessTaskHandler(currentPolicy);
+
+    onProcessTaskAddHandler.handleOnProcessTaskAdd({
+      taskEvent: createTaskEvent(),
+      taskType: 'confirmation',
+    });
+
+    expect(mutateApplicationPolicyMock).toHaveBeenCalledWith({
+      ...currentPolicy,
+      rules: [
+        endUserRuleMock,
+        {
+          ruleId: 'urn:altinn:resource:app_testOrg_testApp:policyid:1:ruleid:testElementId',
+          description:
+            'Rule that defines that the users who can write in testOrg/testApp can read and confirm when it is in confirmation task',
+          subject: ['urn:altinn:rolecode:priv'],
+          accessPackages: [],
+          actions: ['read', 'confirm'],
+          resources: [
+            ['urn:altinn:org:testOrg', 'urn:altinn:app:testApp', 'urn:altinn:task:testElementId'],
+          ],
+        },
+      ],
+    });
+    expect(addLayoutSetMock).not.toHaveBeenCalled();
+    expect(addDataTypeToAppMetadataMock).not.toHaveBeenCalled();
+  });
+
+  it('should not change policy when confirmation task is added and no rule gives write in the app', () => {
+    const onProcessTaskAddHandler = createOnProcessTaskHandler();
+
+    onProcessTaskAddHandler.handleOnProcessTaskAdd({
+      taskEvent: createTaskEvent(),
+      taskType: 'confirmation',
+    });
+
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
+  });
+
+  it.each(['feedback'])(
     'should not add layoutSet, dataType or default policy when task type is %s',
     (task) => {
       const onProcessTaskAddHandler = createOnProcessTaskHandler();

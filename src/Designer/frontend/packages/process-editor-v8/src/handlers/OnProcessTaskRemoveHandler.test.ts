@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Policy } from 'app-shared/types/Policy';
+import type { Policy, PolicyRule } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor-v8/types/OnProcessTask';
 import { OnProcessTaskRemoveHandler } from './OnProcessTaskRemoveHandler';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -299,5 +299,46 @@ describe('OnProcessTaskRemoveHandler', () => {
     expect(deleteLayoutSetMock).not.toHaveBeenCalled();
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
     expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
+  });
+
+  it('should remove confirm rule from current policy when task type is confirmation', () => {
+    const existingRule: PolicyRule = {
+      ruleId: 'existingRuleId',
+      actions: ['read'],
+      description: 'Simple Existing Rule',
+      resources: [],
+      subject: [],
+    };
+    const currentPolicy: Policy = {
+      ...currentPolicyMock,
+      rules: [
+        {
+          ruleId: 'urn:altinn:resource:app_testOrg_testApp:policyid:1:ruleid:testElementId',
+          actions: ['read', 'confirm'],
+          description: 'This should be deleted',
+          resources: [],
+          subject: [],
+        },
+        existingRule,
+      ],
+    };
+
+    const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({ currentPolicy });
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(createTaskMetadataMock('confirmation'));
+
+    expect(mutateApplicationPolicyMock).toHaveBeenCalledWith({
+      ...currentPolicyMock,
+      rules: [existingRule],
+    });
+    expect(deleteLayoutSetMock).not.toHaveBeenCalled();
+    expect(deleteDataTypeFromAppMetadataMock).not.toHaveBeenCalled();
+  });
+
+  it('should not change policy when confirmation task without confirm rule is deleted', () => {
+    const onProcessTaskRemoveHandler = createOnRemoveProcessTaskHandler({});
+
+    onProcessTaskRemoveHandler.handleOnProcessTaskRemove(createTaskMetadataMock('confirmation'));
+
+    expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 });
