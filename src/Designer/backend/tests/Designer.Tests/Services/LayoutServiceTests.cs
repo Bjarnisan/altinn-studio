@@ -168,6 +168,38 @@ public class LayoutServiceTests
     }
 
     [Fact]
+    public async Task DeletePage_PublishesTheIdsOfTheAttachmentComponentsOnThePage()
+    {
+        const string Repo = "app-with-attachment-components";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, Mock<IPublisher> mediatr) =
+            await PrepareTestForRepo(Repo);
+
+        await layoutService.DeletePage(editingContext, "form", "attachments");
+
+        LayoutPageDeletedEvent deletedEvent = Assert.Single(GetPublishedLayoutPageDeletedEvents(mediatr));
+        Assert.Equal(["attachments", "taggedAttachments", "photo"], deletedEvent.AttachmentComponentIds);
+    }
+
+    [Fact]
+    public async Task DeletingPageGroup_PublishesTheIdsOfTheAttachmentComponentsOnEachDeletedPage()
+    {
+        const string Repo = "app-with-attachment-components";
+        (AltinnRepoEditingContext editingContext, LayoutService layoutService, Mock<IPublisher> mediatr) =
+            await PrepareTestForRepo(Repo);
+        await layoutService.ConvertPagesToPageGroups(editingContext, "form");
+        PagesDto pagesDto = PagesDto.From(await layoutService.GetLayoutSettings(editingContext, "form"));
+        pagesDto.Groups[0].Pages.RemoveAll(page => page.Id is "attachments" or "summary");
+
+        await layoutService.UpdatePageGroups(editingContext, "form", (PagesWithGroups)pagesDto.ToBusiness());
+
+        Dictionary<string, List<string>> attachmentComponentIdsByPage = GetPublishedLayoutPageDeletedEvents(mediatr)
+            .ToDictionary(deletedEvent => deletedEvent.LayoutName, deletedEvent => deletedEvent.AttachmentComponentIds);
+        Assert.Equal(["attachments", "summary"], attachmentComponentIdsByPage.Keys);
+        Assert.Equal(["attachments", "taggedAttachments", "photo"], attachmentComponentIdsByPage["attachments"]);
+        Assert.Empty(attachmentComponentIdsByPage["summary"]);
+    }
+
+    [Fact]
     public async Task RenamePage_ShouldNotDeletePagesInGroup()
     {
         const string Repo = "app-with-groups-and-task-navigation";
@@ -374,6 +406,14 @@ public class LayoutServiceTests
         LayoutService layoutService = GetLayoutServiceForTest(mediatr, isV9App);
         return (editingContext, layoutService, mediatr);
     }
+
+    private static List<LayoutPageDeletedEvent> GetPublishedLayoutPageDeletedEvents(Mock<IPublisher> mediatr) =>
+        [
+            .. mediatr
+                .Invocations.Where(i => i.Method.Name == nameof(IPublisher.Publish))
+                .Select(i => i.Arguments[0])
+                .OfType<LayoutPageDeletedEvent>(),
+        ];
 
     private static LayoutService GetLayoutServiceForTest(Mock<IPublisher> mediatr, bool isV9App)
     {

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "attachments-header",
+        "type": "Header",
+        "size": "M",
+        "textResourceBindings": {
+          "title": "attachments.header.title"
+        }
+      },
+      {
+        "id": "attachments",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "attachments.attachments.title"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 1,
+        "displayMode": "list"
+      },
+      {
+        "id": "taggedAttachments",
+        "type": "FileUploadWithTag",
+        "textResourceBindings": {
+          "title": "attachments.taggedAttachments.title",
+          "tagTitle": "attachments.taggedAttachments.tagTitle"
+        },
+        "optionsId": "attachmentTags",
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 1
+      },
+      {
+        "id": "photo",
+        "type": "ImageUpload",
+        "textResourceBindings": {
+          "title": "attachments.photo.title"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 1,
+        "crop": {
+          "shape": "circle",
+          "diameter": 250
+        }
+      },
+      {
+        "id": "attachments-navigation",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}

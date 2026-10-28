@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="SingleDataTask" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Utfylling">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="Signering">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>sign</altinn:action>
+          </altinn:actions>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign>
+              <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+              <altinn:dataType>receipts</altinn:dataType>
+              <altinn:dataType>attachments</altinn:dataType>
+              <altinn:dataType>taggedAttachments</altinn:dataType>
+            </altinn:dataTypesToSign>
+            <altinn:signatureDataType>signature</altinn:signatureDataType>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_3" name="Godkjenning">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>sign</altinn:action>
+          </altinn:actions>
+          <altinn:signatureConfig><altinn:dataTypesToSign><altinn:dataType>ref-data-as-pdf</altinn:dataType><altinn:dataType>photo</altinn:dataType></altinn:dataTypesToSign><altinn:signatureDataType>approval</altinn:signatureDataType></altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_2" targetRef="Task_3" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_3" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>

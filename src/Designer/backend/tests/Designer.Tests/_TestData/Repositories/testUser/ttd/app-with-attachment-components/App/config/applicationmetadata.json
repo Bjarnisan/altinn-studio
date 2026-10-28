@@ -1,0 +1,74 @@
+{
+  "id": "ttd/app-with-attachment-components",
+  "org": "ttd",
+  "title": {
+    "nb": "app-with-attachment-components"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": ["application/pdf"],
+      "maxCount": 0,
+      "minCount": 0
+    },
+    {
+      "id": "model",
+      "allowedContentTypes": ["application/xml"],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.model.model"
+      },
+      "taskId": "Task_1",
+      "maxCount": 1,
+      "minCount": 1
+    },
+    {
+      "id": "receipts",
+      "taskId": "Task_1",
+      "maxSize": 25,
+      "maxCount": 1,
+      "minCount": 1
+    },
+    {
+      "id": "attachments",
+      "taskId": "Task_1",
+      "maxSize": 25,
+      "maxCount": 1,
+      "minCount": 1
+    },
+    {
+      "id": "taggedAttachments",
+      "taskId": "Task_1",
+      "maxSize": 25,
+      "maxCount": 1,
+      "minCount": 1
+    },
+    {
+      "id": "photo",
+      "taskId": "Task_1",
+      "maxSize": 25,
+      "maxCount": 1,
+      "minCount": 1
+    },
+    {
+      "id": "signature",
+      "allowedContentTypes": ["application/json"],
+      "taskId": "Task_2",
+      "maxCount": 1,
+      "minCount": 0
+    },
+    {
+      "id": "approval",
+      "allowedContentTypes": ["application/json"],
+      "taskId": "Task_3",
+      "maxCount": 1,
+      "minCount": 0
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  }
+}

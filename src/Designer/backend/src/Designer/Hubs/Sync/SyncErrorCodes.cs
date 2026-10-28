@@ -18,5 +18,11 @@ public static class SyncErrorCodes
     public const string LayoutPageAddSyncError = nameof(LayoutPageAddSyncError);
     public const string ComponentDeletedLayoutsSyncError = nameof(ComponentDeletedLayoutsSyncError);
     public const string LayoutPageDeletedLayoutsSyncError = nameof(LayoutPageDeletedLayoutsSyncError);
+    public const string LayoutPageDeletedApplicationMetadataSyncError = nameof(
+        LayoutPageDeletedApplicationMetadataSyncError
+    );
+    public const string LayoutPageDeletedProcessDefinitionSyncError = nameof(
+        LayoutPageDeletedProcessDefinitionSyncError
+    );
     public const string LayoutPageIdChangedLayoutsSyncError = nameof(LayoutPageIdChangedLayoutsSyncError);
 }

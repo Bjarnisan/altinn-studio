@@ -90,6 +90,7 @@ public class LayoutService(
             editingContext.Developer
         );
 
+        List<string> attachmentComponentIds = await GetAttachmentComponentIds(appRepository, layoutSetId, pageId);
         appRepository.DeleteLayout(layoutSetId, pageId);
 
         LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
@@ -115,8 +116,21 @@ public class LayoutService(
                 EditingContext = editingContext,
                 LayoutName = pageId,
                 LayoutSetName = layoutSetId,
+                AttachmentComponentIds = attachmentComponentIds,
             }
         );
+    }
+
+    // Read before the page is deleted, so the handlers of LayoutPageDeletedEvent can delete the data types of the
+    // page's attachment components, as Designer does when a single attachment component is deleted.
+    private static async Task<List<string>> GetAttachmentComponentIds(
+        AltinnAppGitRepository appRepository,
+        string layoutSetId,
+        string pageId
+    )
+    {
+        JsonNode layout = await appRepository.GetLayout(layoutSetId, pageId);
+        return new AltinnPageLayout(layout.AsObject()).GetAttachmentComponentIds();
     }
 
     public async Task RenamePage(
@@ -235,10 +249,12 @@ public class LayoutService(
         appRepository.EnsureLayoutWritesAreAllowed(layoutSetId, createdPages, deletedPages);
         foreach (string pageId in deletedPages)
         {
+            List<string> attachmentComponentIds = [];
             // Settings.json can list a page without a layout file when the repository was edited outside
             // Designer. Removing that page from the groups is all there is left to do.
             if (appRepository.LayoutFileExistsByExactName(layoutSetId, pageId))
             {
+                attachmentComponentIds = await GetAttachmentComponentIds(appRepository, layoutSetId, pageId);
                 appRepository.DeleteLayout(layoutSetId, pageId);
             }
             await mediatr.Publish(
@@ -247,6 +263,7 @@ public class LayoutService(
                     EditingContext = editingContext,
                     LayoutName = pageId,
                     LayoutSetName = layoutSetId,
+                    AttachmentComponentIds = attachmentComponentIds,
                 }
             );
         }

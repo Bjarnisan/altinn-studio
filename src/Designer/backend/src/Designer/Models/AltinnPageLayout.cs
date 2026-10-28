@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 using Altinn.App.Core.Helpers;
@@ -8,6 +9,8 @@ namespace Altinn.Studio.Designer.Models;
 
 public class AltinnPageLayout
 {
+    private static readonly string[] s_attachmentComponentTypes = ["FileUpload", "FileUploadWithTag", "ImageUpload"];
+
     private readonly Random _random = new();
 
     public JsonObject Structure { get; set; }
@@ -60,5 +63,18 @@ public class AltinnPageLayout
         JsonArray components = Structure["data"]["layout"] as JsonArray;
         components?.RemoveAll((component) => component["type"].GetValue<string>().Equals(type));
         return this;
+    }
+
+    /// <summary>
+    /// Returns the ids of the components that upload attachments. Designer gives each of them a data type with the
+    /// same id.
+    /// </summary>
+    public List<string> GetAttachmentComponentIds()
+    {
+        JsonArray components = Structure["data"]["layout"] as JsonArray;
+        return components
+            .Where((component) => s_attachmentComponentTypes.Contains(component["type"].GetValue<string>()))
+            .Select((component) => component["id"].GetValue<string>())
+            .ToList();
     }
 }
