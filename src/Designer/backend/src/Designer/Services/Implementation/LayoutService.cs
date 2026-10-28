@@ -130,7 +130,7 @@ public class LayoutService(
     )
     {
         JsonNode layout = await appRepository.GetLayout(layoutSetId, pageId);
-        return new AltinnPageLayout(layout.AsObject()).GetAttachmentComponentIds();
+        return layout is JsonObject page ? new AltinnPageLayout(page).GetAttachmentComponentIds() : [];
     }
 
     public async Task RenamePage(

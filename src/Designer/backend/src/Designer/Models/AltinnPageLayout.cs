@@ -71,10 +71,17 @@ public class AltinnPageLayout
     /// </summary>
     public List<string> GetAttachmentComponentIds()
     {
-        JsonArray components = Structure["data"]["layout"] as JsonArray;
+        // Reading a page must not stop it from being deleted, even when it was edited outside Designer and lacks
+        // parts of a layout.
+        if (Structure["data"]?["layout"] is not JsonArray components)
+        {
+            return [];
+        }
         return components
-            .Where((component) => s_attachmentComponentTypes.Contains(component["type"].GetValue<string>()))
-            .Select((component) => component["id"].GetValue<string>())
+            .OfType<JsonObject>()
+            .Where((component) => s_attachmentComponentTypes.Contains((string)component["type"]))
+            .Select((component) => (string)component["id"])
+            .OfType<string>()
             .ToList();
     }
 }

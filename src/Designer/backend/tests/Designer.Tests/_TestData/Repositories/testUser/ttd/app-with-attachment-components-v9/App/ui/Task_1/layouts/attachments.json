@@ -1,0 +1,46 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "attachments-header",
+        "type": "Header",
+        "size": "M",
+        "textResourceBindings": {
+          "title": "attachments.header.title"
+        }
+      },
+      {
+        "id": "attachments",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "attachments.attachments.title"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 1,
+        "displayMode": "list"
+      },
+      {
+        "id": "photo",
+        "type": "ImageUpload",
+        "textResourceBindings": {
+          "title": "attachments.photo.title"
+        },
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 1,
+        "crop": {
+          "shape": "circle",
+          "diameter": 250
+        }
+      },
+      {
+        "id": "attachments-navigation",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}

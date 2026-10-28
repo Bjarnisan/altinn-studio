@@ -1,0 +1,20 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "summary-paragraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "summary.paragraph.title"
+        }
+      },
+      {
+        "id": "summary-navigation",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -29,15 +30,26 @@ public class DeletePageTests(WebApplicationFactory<Program> factory)
     private const string ApplicationMetadataPath = "App/config/applicationmetadata.json";
     private const string ProcessDefinitionPath = "App/config/process/process.bpmn";
 
-    [Fact]
-    public async Task DeletePage_DeletesTheDataTypesOfTheAttachmentComponentsOnThePage()
+    /// <summary>
+    /// A v8 app with a layout set, and a v9 app with a UI folder. Both editors delete pages through this endpoint.
+    /// </summary>
+    public static TheoryData<string, string> AppsAndLayoutSets =>
+        new() { { AppWithAttachmentComponents, LayoutSet }, { "app-with-attachment-components-v9", "Task_1" } };
+
+    [Theory]
+    [MemberData(nameof(AppsAndLayoutSets))]
+    public async Task DeletePage_DeletesTheDataTypesOfTheAttachmentComponentsOnThePage(string app, string layoutSet)
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, AppWithAttachmentComponents, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, app, Developer, targetRepository);
 
         // Act
-        using HttpResponseMessage response = await DeletePage(targetRepository, PageWithAttachmentComponents);
+        using HttpResponseMessage response = await DeletePage(
+            targetRepository,
+            layoutSet,
+            PageWithAttachmentComponents
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -47,20 +59,29 @@ public class DeletePageTests(WebApplicationFactory<Program> factory)
         );
     }
 
-    [Fact]
-    public async Task DeletePage_RemovesTheAttachmentComponentsOnThePageFromTheDataTypesToSign()
+    [Theory]
+    [MemberData(nameof(AppsAndLayoutSets))]
+    public async Task DeletePage_RemovesTheAttachmentComponentsOnThePageFromTheDataTypesToSign(
+        string app,
+        string layoutSet
+    )
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, AppWithAttachmentComponents, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, app, Developer, targetRepository);
         string processDefinitionBefore = GetFile(targetRepository, ProcessDefinitionPath);
 
         // Act
-        using HttpResponseMessage response = await DeletePage(targetRepository, PageWithAttachmentComponents);
+        using HttpResponseMessage response = await DeletePage(
+            targetRepository,
+            layoutSet,
+            PageWithAttachmentComponents
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        // Each removed element takes the whitespace before it, and nothing else in the file changes.
+        // Each removed element takes the whitespace before it. Both sides are parsed, so the comparison does not
+        // see the XML declaration or line endings, which XDocument writes in its own way.
         string expectedProcessDefinition = Regex.Replace(
             processDefinitionBefore,
             @"\s*<altinn:dataType>(attachments|taggedAttachments|photo)</altinn:dataType>",
@@ -86,7 +107,7 @@ public class DeletePageTests(WebApplicationFactory<Program> factory)
         string processDefinitionBefore = GetFile(targetRepository, ProcessDefinitionPath);
 
         // Act
-        using HttpResponseMessage response = await DeletePage(targetRepository, pageId);
+        using HttpResponseMessage response = await DeletePage(targetRepository, LayoutSet, pageId);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -94,8 +115,29 @@ public class DeletePageTests(WebApplicationFactory<Program> factory)
         Assert.Equal(processDefinitionBefore, GetFile(targetRepository, ProcessDefinitionPath));
     }
 
-    private async Task<HttpResponseMessage> DeletePage(string repository, string pageId) =>
-        await HttpClient.DeleteAsync($"/designer/api/{Org}/{repository}/layouts/layoutSet/{LayoutSet}/pages/{pageId}");
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("""{"data": {}}""")]
+    [InlineData("""{"data": {"layout": [null, {"id": "withoutType"}, {"type": "FileUpload"}]}}""")]
+    [InlineData("[]")]
+    public async Task DeletePage_WhenThePageLacksPartsOfALayout_DeletesThePage(string pageContent)
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, AppWithAttachmentComponents, Developer, targetRepository);
+        string pagePath = Path.Combine(TestRepoPath, "App", "ui", LayoutSet, "layouts", "summary.json");
+        await File.WriteAllTextAsync(pagePath, pageContent);
+
+        // Act
+        using HttpResponseMessage response = await DeletePage(targetRepository, LayoutSet, "summary");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.False(File.Exists(pagePath));
+    }
+
+    private async Task<HttpResponseMessage> DeletePage(string repository, string layoutSet, string pageId) =>
+        await HttpClient.DeleteAsync($"/designer/api/{Org}/{repository}/layouts/layoutSet/{layoutSet}/pages/{pageId}");
 
     private static List<string> GetDataTypeIds(string repository) =>
         [
