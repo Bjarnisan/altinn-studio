@@ -115,6 +115,39 @@ describe('AddressComponent', () => {
     expect(screen.getByText(/postnummer er ugyldig/i)).toBeInTheDocument();
   });
 
+  it.each`
+    readOnly                                                | expectedErrors
+    ${false}                                                | ${2}
+    ${true}                                                 | ${0}
+    ${['equals', ['dataModel', 'address'], 'Storgatan 1']}  | ${0}
+    ${['equals', ['dataModel', 'address'], 'Other street']} | ${2}
+  `(
+    'should show $expectedErrors format errors for a prefilled address when readOnly is $readOnly',
+    async ({ readOnly, expectedErrors }) => {
+      await render({
+        component: {
+          showValidations: ['Component'],
+          simplified: false,
+          readOnly,
+        },
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                address: 'Storgatan 1',
+                zipCode: 'SE-11455',
+                houseNumber: 'H010',
+              };
+            }),
+        },
+      });
+
+      await waitFor(() =>
+        expect(screen.queryAllByText(/postnummer er ugyldig|bolignummer er ugyldig/i)).toHaveLength(expectedErrors),
+      );
+    },
+  );
+
   it('should update postplace on mount', async () => {
     const { formDataMethods } = await render({
       component: {

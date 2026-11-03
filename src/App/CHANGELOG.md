@@ -20,6 +20,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 
+### Fixed
+
+- A read-only Address no longer reports a zip code that is not four digits, such as a postal address abroad prefilled from the population register. The user could not change the field and was stopped by the error.
+
 ## [9.0.0-preview.9] - 2026-10-28
 
 ### Added
