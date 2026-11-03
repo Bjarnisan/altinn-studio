@@ -116,11 +116,11 @@ describe('AddressComponent', () => {
   });
 
   it.each`
-    readOnly                                                | expectedErrors
-    ${false}                                                | ${2}
-    ${true}                                                 | ${0}
-    ${['equals', ['dataModel', 'address'], 'Storgatan 1']}  | ${0}
-    ${['equals', ['dataModel', 'address'], 'Other street']} | ${2}
+    readOnly                                                    | expectedErrors
+    ${false}                                                    | ${2}
+    ${true}                                                     | ${0}
+    ${['equals', ['dataModel', 'address'], '23 Boscombe Road']} | ${0}
+    ${['equals', ['dataModel', 'address'], 'Other street']}     | ${2}
   `(
     'should show $expectedErrors format errors for a prefilled address when readOnly is $readOnly',
     async ({ readOnly, expectedErrors }) => {
@@ -134,17 +134,16 @@ describe('AddressComponent', () => {
           fetchFormBootstrapForInstance: async () =>
             getFormBootstrapMock((obj) => {
               obj.dataModels[defaultDataTypeMock].initialData = {
-                address: 'Storgatan 1',
-                zipCode: 'SE-11455',
+                address: '23 Boscombe Road',
+                zipCode: 'LU5 4SB',
                 houseNumber: 'H010',
               };
             }),
         },
       });
 
-      await waitFor(() =>
-        expect(screen.queryAllByText(/postnummer er ugyldig|bolignummer er ugyldig/i)).toHaveLength(expectedErrors),
-      );
+      await screen.findByDisplayValue('LU5 4SB');
+      expect(screen.queryAllByText(/postnummer er ugyldig|bolignummer er ugyldig/i)).toHaveLength(expectedErrors);
     },
   );
 

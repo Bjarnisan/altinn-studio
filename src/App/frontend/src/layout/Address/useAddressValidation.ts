@@ -8,7 +8,7 @@ import type { IDataModelBindings } from 'src/layout/layout';
 
 export function validateAddress(ctx: ComponentValidationContext<'Address'>): ComponentValidation[] {
   // The user cannot correct a read-only address. It can be prefilled from the population register, where a postal
-  // address abroad has a zip code that is not four digits, so an error here would stop the user with no way forward.
+  // address abroad can have a zip code that is not four digits, so an error here would stop the user with no way forward.
   const readOnly = evalExpr(ctx.component.readOnly, ctx.expressionDataSources, {
     returnType: ExprVal.Boolean,
     defaultValue: false,

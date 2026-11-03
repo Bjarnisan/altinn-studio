@@ -22,7 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- A read-only Address no longer reports a zip code that is not four digits, such as a postal address abroad prefilled from the population register. The user could not change the field and was stopped by the error.
+- A read-only Address no longer shows format errors for its zip code or house number, so a postal address abroad prefilled from the population register no longer stops the user.
 
 ## [9.0.0-preview.9] - 2026-10-28
 
