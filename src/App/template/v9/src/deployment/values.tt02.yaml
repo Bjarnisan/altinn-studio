@@ -1,4 +1,4 @@
-# Overrides for tt02. A form in tt02 is normally tested by one person at a time, so one replica is enough.
+# One replica is usually enough in tt02.
 autoscaling:
   replicas:
     min: 1
