@@ -685,6 +685,123 @@ describe('FormData', () => {
     });
   });
 
+  describe('Auto save interval', () => {
+    function WaitForSaveButton() {
+      const waitForSave = FormStore.data.useWaitForSave();
+      return <button onClick={() => waitForSave()}>Wait for save</button>;
+    }
+
+    async function render() {
+      return statefulRender({
+        renderer: (
+          <>
+            <SimpleWriter
+              path='obj1.prop1'
+              dataType={defaultDataTypeMock}
+            />
+            <SimpleWriter
+              path='obj1.prop2'
+              dataType={defaultDataTypeMock}
+            />
+            <SimpleWriter
+              path='obj2.prop1'
+              dataType={defaultDataTypeMock}
+            />
+            <WaitForSaveButton />
+          </>
+        ),
+      });
+    }
+
+    function patchesInSave(mutations: Awaited<ReturnType<typeof render>>['mutations'], call: number) {
+      const request = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[
+        call
+      ][1] as IDataModelMultiPatchRequest;
+      return request.patches[0].patch;
+    }
+
+    function finishSave(mutations: Awaited<ReturnType<typeof render>>['mutations'], data: object) {
+      const response: IDataModelMultiPatchResponse = {
+        newDataModels: [{ dataElementId: defaultMockDataElementId, data }],
+        validationIssues: [],
+        instance: getInstanceDataMock(),
+      };
+      mutations.doPatchMultipleFormData.resolve(httpResponse(response));
+    }
+
+    beforeAll(() => {
+      vi.useFakeTimers();
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it('saves at most once per interval, and sends the changes made in between in the next save', async () => {
+      window.altinnAppGlobalData.ui.settings!.autoSaveInterval = 4000;
+      const user = userEvent.setup({ delay: null });
+      const { mutations } = await render();
+
+      // The first change is saved as soon as the user stops typing
+      await user.type(screen.getByTestId('obj1.prop1'), 'a');
+      act(() => vi.advanceTimersByTime(DEFAULT_DEBOUNCE_TIMEOUT));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+      finishSave(mutations, { obj1: { prop1: 'a' } });
+
+      // Two more changes within the interval are held back
+      await user.type(screen.getByTestId('obj2.prop1'), 'b');
+      act(() => vi.advanceTimersByTime(1000));
+      await user.type(screen.getByTestId('obj1.prop2'), 'c');
+      act(() => vi.advanceTimersByTime(2000));
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1);
+
+      // When the interval has passed, both are sent in one save
+      act(() => vi.advanceTimersByTime(1000));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
+      expect(patchesInSave(mutations, 1)).toEqual([
+        { op: 'add', path: '/obj1/prop2', value: 'c' },
+        { op: 'add', path: '/obj2', value: { prop1: 'b' } },
+      ]);
+    });
+
+    it('saves at once when something waits for the save, such as navigation', async () => {
+      // A long interval, since waitFor below moves the fake clock while it waits
+      window.altinnAppGlobalData.ui.settings!.autoSaveInterval = 60_000;
+      const user = userEvent.setup({ delay: null });
+      const { mutations } = await render();
+
+      await user.type(screen.getByTestId('obj1.prop1'), 'a');
+      act(() => vi.advanceTimersByTime(DEFAULT_DEBOUNCE_TIMEOUT));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+      const firstSaveAt = Date.now();
+      finishSave(mutations, { obj1: { prop1: 'a' } });
+
+      await user.type(screen.getByTestId('obj2.prop1'), 'b');
+      act(() => vi.advanceTimersByTime(DEFAULT_DEBOUNCE_TIMEOUT));
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1);
+
+      await user.click(screen.getByRole('button', { name: 'Wait for save' }));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
+      expect(patchesInSave(mutations, 1)).toEqual([{ op: 'add', path: '/obj2', value: { prop1: 'b' } }]);
+
+      expect(Date.now() - firstSaveAt).toBeLessThan(60_000);
+    });
+
+    it('saves every change as before when no interval is set', async () => {
+      const user = userEvent.setup({ delay: null });
+      const { mutations } = await render();
+
+      await user.type(screen.getByTestId('obj1.prop1'), 'a');
+      act(() => vi.advanceTimersByTime(DEFAULT_DEBOUNCE_TIMEOUT));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+      finishSave(mutations, { obj1: { prop1: 'a' } });
+
+      await user.type(screen.getByTestId('obj2.prop1'), 'b');
+      act(() => vi.advanceTimersByTime(DEFAULT_DEBOUNCE_TIMEOUT));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
+    });
+  });
+
   describe('Navigation and persistence', () => {
     function NavigationButton() {
       const navigate = useNavigate();

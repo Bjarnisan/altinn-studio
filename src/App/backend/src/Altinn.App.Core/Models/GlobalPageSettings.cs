@@ -54,6 +54,13 @@ public class GlobalPageSettings
     public AutoSaveBehavior AutoSaveBehavior { get; set; } = AutoSaveBehavior.OnChangeFormData;
 
     /// <summary>
+    /// The least time in milliseconds between two automatic saves when <see cref="AutoSaveBehavior"/> is
+    /// onChangeFormData. Navigation, validation and submit still save at once. 0 saves without waiting.
+    /// </summary>
+    [JsonPropertyName("autoSaveInterval")]
+    public int AutoSaveInterval { get; set; } = 0;
+
+    /// <summary>
     /// Overrides the default navigation panel title. Can be a text resource key or an expression.
     /// </summary>
     [JsonPropertyName("navigationTitle")]

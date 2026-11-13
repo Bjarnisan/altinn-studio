@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
@@ -41,6 +41,7 @@ export type FDValue = FDLeafValue | object | FDValue[];
 export interface FormDataSliceProps {
   dataModels: FormBootstrapQueryResponse['dataModels'];
   autoSaving: boolean;
+  autoSaveInterval: number;
   // Rejects every write, as if all data elements were locked
   locked: boolean;
   proxies: FormDataWriteProxies;
@@ -172,12 +173,14 @@ function FormDataEffects() {
   const parent = store.getState().parent;
   const rootStore = getRootFormStore(store);
   const rootManualSaveRequested = useStore(rootStore, (state) => state.data.manualSaveRequested);
-  const [autoSaving, lockedBy, debounceTimeout, manualSaveRequested] = FormStore.raw.useShallowSelector((s) => [
-    s.data.autoSaving,
-    s.data.lockedBy,
-    s.data.debounceTimeout,
-    s.data.manualSaveRequested,
-  ]);
+  const [autoSaving, autoSaveInterval, lockedBy, debounceTimeout, manualSaveRequested] =
+    FormStore.raw.useShallowSelector((s) => [
+      s.data.autoSaving,
+      s.data.autoSaveInterval,
+      s.data.lockedBy,
+      s.data.debounceTimeout,
+      s.data.manualSaveRequested,
+    ]);
   const hasUnsavedChanges = useHasUnsavedChanges();
   const hasInvalidData = FormStore.raw.useSelector((state) => hasInvalidFormData(state));
   const shouldWarnBeforeUnload = hasUnsavedChanges || hasInvalidData;
@@ -273,8 +276,10 @@ function FormDataEffects() {
   const needsToSave = FormStore.raw.useSelector((state) => hasDebouncedUnsavedChanges(state));
   const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidations;
   // A root save also flushes mounted subforms, including forms that only autosave on page changes.
-  const shouldSave =
-    (autoSaving && needsToSave) || ((manualSaveRequested || rootManualSaveRequested) && hasUnsavedChangesNow());
+  const manualSave = (manualSaveRequested || rootManualSaveRequested) && hasUnsavedChangesNow();
+  const shouldSave = (autoSaving && needsToSave) || manualSave;
+  const lastSaveStartedAt = useRef<number | undefined>(undefined);
+  const [autoSaveIntervalEnded, setAutoSaveIntervalEnded] = useState(0);
 
   useEffect(() => {
     if (manualSaveRequested && !hasUnsavedChangesNow() && nestedUnsaved === 0) {
@@ -283,8 +288,23 @@ function FormDataEffects() {
   }, [manualSaveRequested, hasUnsavedChanges, nestedUnsaved, hasUnsavedChangesNow, requestManualSave]);
 
   useEffect(() => {
-    canSaveNow && shouldSave && performSave();
-  }, [performSave, canSaveNow, shouldSave]);
+    if (!canSaveNow || !shouldSave) {
+      return;
+    }
+
+    // An automatic save waits until autoSaveInterval has passed since the last save started. A manual save does not.
+    const wait =
+      manualSave || lastSaveStartedAt.current === undefined
+        ? 0
+        : lastSaveStartedAt.current + autoSaveInterval - Date.now();
+    if (wait > 0) {
+      const timer = setTimeout(() => setAutoSaveIntervalEnded((count) => count + 1), wait);
+      return () => clearTimeout(timer);
+    }
+
+    lastSaveStartedAt.current = Date.now();
+    performSave();
+  }, [performSave, canSaveNow, shouldSave, manualSave, autoSaveInterval, autoSaveIntervalEnded]);
 
   // Always save unsaved changes when the user navigates away from the page and this component is unmounted.
   // We cannot put the current and last saved data in the dependency array, because that would cause the effect
@@ -430,7 +450,9 @@ const useWaitForSave = ({ includeRoot = false }: { includeRoot?: boolean } = {})
         }
 
         const hasChanges = hasUnsavedChanges(state) || state.nestedFormStatus.unsaved > 0;
-        if (requestManualSave && !state.data.manualSaveRequested && hasChanges) {
+        // An automatic save held back by autoSaveInterval would make the caller wait, so save at once instead.
+        const saveNow = requestManualSave || (state.data.autoSaving && state.data.autoSaveInterval > 0);
+        if (saveNow && !state.data.manualSaveRequested && hasChanges) {
           state.data.requestManualSave();
           return false;
         }

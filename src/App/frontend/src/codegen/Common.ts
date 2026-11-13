@@ -1000,6 +1000,17 @@ const common = {
           ),
       ),
       new CG.prop(
+        'autoSaveInterval',
+        new CG.int()
+          .setMin(0)
+          .optional({ default: 0 })
+          .setTitle('Auto save interval', 'Intervall for automatisk lagring')
+          .setDescription(
+            'The least time in milliseconds between two automatic saves when autoSaveBehavior is onChangeFormData. Changes made in between are sent together in the next save. Navigation, validation and submit still save at once. Defaults to 0, which saves as soon as the user stops typing. Values from the server, such as calculated fields and backend validation messages, update when the next save returns.',
+            'Minste tid i millisekunder mellom to automatiske lagringer når autoSaveBehavior er onChangeFormData. Endringer som gjøres i mellomtiden, sendes samlet i neste lagring. Navigering, validering og innsending lagrer fortsatt med en gang. Standard er 0, som lagrer så snart brukeren slutter å skrive. Verdier fra serveren, som beregnede felt og valideringsmeldinger fra backend, oppdateres når neste lagring er ferdig.',
+          ),
+      ),
+      new CG.prop(
         'navigationTitle',
         new CG.expr(ExprVal.String)
           .optional({ default: 'navigation.form_pages' })

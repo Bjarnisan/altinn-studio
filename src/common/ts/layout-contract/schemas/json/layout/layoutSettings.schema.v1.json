@@ -71,6 +71,13 @@
             "onChangePage"
           ]
         },
+        "autoSaveInterval": {
+          "title": "Auto save interval",
+          "description": "The least time in milliseconds between two automatic saves when autoSaveBehavior is onChangeFormData. Changes made in between are sent together in the next save. Navigation, validation and submit still save at once. Defaults to 0, which saves as soon as the user stops typing. Values from the server, such as calculated fields and backend validation messages, update when the next save returns.",
+          "default": 0,
+          "type": "integer",
+          "minimum": 0
+        },
         "navigationTitle": {
           "title": "Navigation title",
           "description": "Overrides the default \"Skjemasider\" heading shown in the navigation panel. Can be a text resource key or a dynamic expression that reads from the data model.",
@@ -240,6 +247,7 @@
             "showProgress": true,
             "hideOptionalIndicator": true,
             "autoSaveBehavior": true,
+            "autoSaveInterval": true,
             "navigationTitle": true,
             "taskNavigation": true,
             "validationOnNavigation": true,
@@ -290,6 +298,7 @@
             "showProgress": true,
             "hideOptionalIndicator": true,
             "autoSaveBehavior": true,
+            "autoSaveInterval": true,
             "navigationTitle": true,
             "taskNavigation": true,
             "validationOnNavigation": true,

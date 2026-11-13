@@ -80,6 +80,10 @@ export type FormDataSliceState = {
   // only when the user navigates to another page.
   autoSaving: boolean;
 
+  // The least time in milliseconds between two automatic saves. Changes made in between are saved together when the
+  // time has passed. A manual save, and anything that waits for a save, is not held back. 0 saves without waiting.
+  autoSaveInterval: number;
+
   // The time in milliseconds to debounce the currentData model. This is used to determine how long to wait after the
   // user has stopped typing before updating that data into the debouncedCurrentData model. Usually this will follow
   // the default value, it can also be changed at any time by each component that uses the FormDataWriter.
@@ -663,6 +667,7 @@ export function createFormDataWriteSlice(props: FormDataSliceProps, set: FormSto
   return {
     models,
     autoSaving: props.autoSaving,
+    autoSaveInterval: props.autoSaveInterval,
     lockedBy: undefined,
     lockQueue: [],
     debounceTimeout: DEFAULT_DEBOUNCE_TIMEOUT,

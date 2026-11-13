@@ -4145,6 +4145,8 @@ namespace Altinn.App.Core.Models
         public GlobalPageSettings() { }
         [System.Text.Json.Serialization.JsonPropertyName("autoSaveBehavior")]
         public Altinn.App.Core.Models.AutoSaveBehavior AutoSaveBehavior { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("autoSaveInterval")]
+        public int AutoSaveInterval { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("expandedWidth")]
         public bool ExpandedWidth { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("hideAppNameInPdf")]
@@ -4413,6 +4415,7 @@ namespace Altinn.App.Core.Models
     {
         public Pages() { }
         public Altinn.App.Core.Models.AutoSaveBehavior? AutoSaveBehavior { get; set; }
+        public int? AutoSaveInterval { get; set; }
         public System.Collections.Generic.List<string>? ExcludeFromPdf { get; set; }
         public bool? ExpandedWidth { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.PageGroup>? Groups { get; set; }

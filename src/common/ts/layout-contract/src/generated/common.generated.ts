@@ -117,6 +117,7 @@ export interface GlobalPageSettingsFromSchema {
   showProgress?: boolean;
   hideOptionalIndicator?: boolean;
   autoSaveBehavior?: 'onChangeFormData' | 'onChangePage';
+  autoSaveInterval?: number;
   navigationTitle?: ExprValToActualOrExpr<ExprVal.String>;
   taskNavigation?: (NavigationTaskFromSchema | NavigationReceiptFromSchema)[];
   validationOnNavigation?: PageValidation;
@@ -663,4 +664,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 2bec1f33d6556538af9888bacfa8fa469fc9bd61e1626bef7671c028c26f5673
+// Source hash: 99c7d40520a536c0da60dba9880dfb52f50634bd97074b2ec9747ccd7569fbbd

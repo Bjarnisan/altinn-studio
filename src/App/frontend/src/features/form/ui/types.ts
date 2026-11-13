@@ -11,6 +11,7 @@ export type GlobalPageSettings = {
   showProgress: boolean;
   hideOptionalIndicator: boolean;
   autoSaveBehavior: 'onChangeFormData' | 'onChangePage';
+  autoSaveInterval: number;
   navigationTitle: ExprValToActualOrExpr<ExprVal.String> | undefined;
   taskNavigation: (NavigationTask | NavigationReceipt)[];
   validationOnNavigation: PageValidation | undefined;

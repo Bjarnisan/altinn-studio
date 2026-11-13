@@ -14,6 +14,7 @@ export function getGlobalPageSettingsMock(): GlobalPageSettings {
     showProgress: false,
     hideOptionalIndicator: false,
     autoSaveBehavior: 'onChangeFormData',
+    autoSaveInterval: 0,
     taskNavigation: [],
     navigationTitle: undefined,
     validationOnNavigation: undefined,

@@ -38,6 +38,7 @@ export function processLayoutSettings(settings: ILayoutSettings | null | undefin
 
   const localPageSettings: Partial<GlobalPageSettings> = {
     autoSaveBehavior: settings.pages.autoSaveBehavior,
+    autoSaveInterval: settings.pages.autoSaveInterval,
     expandedWidth: settings.pages.expandedWidth,
     hideCloseButton: settings.pages.hideCloseButton,
     showExpandWidthButton: settings.pages.showExpandWidthButton,

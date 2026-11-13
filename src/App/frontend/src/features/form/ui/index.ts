@@ -10,6 +10,7 @@ export const defaultGlobalUiSettings: GlobalPageSettings = {
   showProgress: false,
   hideOptionalIndicator: false,
   autoSaveBehavior: 'onChangeFormData',
+  autoSaveInterval: 0,
   taskNavigation: [],
   navigationTitle: 'navigation.form_pages',
   validationOnNavigation: undefined,

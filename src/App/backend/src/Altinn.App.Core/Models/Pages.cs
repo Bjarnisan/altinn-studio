@@ -44,6 +44,11 @@ public class Pages
     public AutoSaveBehavior? AutoSaveBehavior { get; set; }
 
     /// <summary>
+    /// The least time in milliseconds between two automatic saves.
+    /// </summary>
+    public int? AutoSaveInterval { get; set; }
+
+    /// <summary>
     /// Overrides the default navigation panel title. Can be a text resource key or an expression.
     /// </summary>
     public Expression? NavigationTitle { get; set; }

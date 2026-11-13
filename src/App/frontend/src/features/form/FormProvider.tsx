@@ -283,7 +283,7 @@ export function useFormDataSliceProps(
 ): FormDataSliceProps | undefined {
   const proxies = useFormDataWriteProxies();
   const selectFromInstance = useSelectFromInstanceData();
-  const autoSaveBehavior = usePageSettings().autoSaveBehavior;
+  const { autoSaveBehavior, autoSaveInterval } = usePageSettings();
   const changeInstance = useOptimisticallyUpdateCachedInstance();
   const calculationDataSources = useAsRef(useExpressionDataSourcesBaseForStoreSelector());
 
@@ -294,6 +294,7 @@ export function useFormDataSliceProps(
   return {
     dataModels: bootstrap.dataModels,
     autoSaving: !autoSaveBehavior || autoSaveBehavior === 'onChangeFormData',
+    autoSaveInterval,
     locked,
     proxies,
     changeInstance,
